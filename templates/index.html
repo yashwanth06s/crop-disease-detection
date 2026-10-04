@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>CropCare AI</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f2f8f2;
+            color: #173b1f;
+        }
+
+        .header {
+            background: #176b35;
+            color: white;
+            text-align: center;
+            padding: 24px 15px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        .header p {
+            margin: 8px 0 0;
+            font-size: 15px;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 650px;
+            margin: 25px auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 18px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: #176b35;
+        }
+
+        .upload-area {
+            border: 2px dashed #4b9b60;
+            border-radius: 15px;
+            padding: 25px 15px;
+            text-align: center;
+            background: #f8fff8;
+        }
+
+        .upload-icon {
+            font-size: 45px;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            margin: 15px 0;
+            padding: 10px;
+        }
+
+        .button {
+            width: 100%;
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            background: #176b35;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background: #0f5227;
+        }
+
+        .error {
+            background: #ffe8e8;
+            color: #a30000;
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .result {
+            border-left: 6px solid #176b35;
+        }
+
+        .result-row {
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #176b35;
+        }
+
+        .confidence {
+            font-size: 28px;
+            font-weight: bold;
+            color: #176b35;
+        }
+
+        .advice-list {
+            padding-left: 22px;
+        }
+
+        .advice-list li {
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .note {
+            font-size: 13px;
+            color: #666;
+            margin-top: 15px;
+            line-height: 1.5;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        @media (max-width: 500px) {
+
+            .header h1 {
+                font-size: 25px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .value {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>🌱 CropCare AI</h1>
+        <p>AI-Based Crop Disease Detection & Farmer Advisory</p>
+    </div>
+    <div style="text-align: right; max-width: 900px; margin: 12px auto 0; padding: 0 15px;">
+    <label for="languageSelect"><strong>🌐 Language:</strong></label>
+    <select id="languageSelect" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #aaa;">
+        <option value="en">English</option>
+        <option value="kn">ಕನ್ನಡ</option>
+        <option value="hi">हिंदी</option>
+    </select>
+    </div>
+
+
+    <div class="container">
+
+        {% if error %}
+        <div class="error">
+            ⚠️ {{ error }}
+        </div>
+        {% endif %}
+
+
+        <div class="card">
+
+            <h2>🌿 Check Your Crop Leaf</h2>
+
+            <p>
+                Upload a clear photo of a tomato or potato leaf.
+                Our AI model will analyze the image and provide
+                a possible disease prediction.
+            </p>
+
+            <form action="/predict"
+                  method="POST"
+                  enctype="multipart/form-data">
+
+                <div class="upload-area">
+
+                    <div class="upload-icon">
+                        📷
+                    </div>
+
+                    <p>
+                        Select or take a clear leaf photo
+                    </p>
+
+                    <input
+                        type="file"
+                        name="leaf_image"
+                        accept="image/*"
+                        capture="environment"
+                        required
+                    >
+
+                </div>
+
+                <br>
+
+                <button class="button" type="submit">
+                    🔍 Analyze Leaf
+                </button>
+
+            </form>
+
+        </div>
+
+
+        {% if result %}
+
+        <div class="card" id="resultCard">
+
+            <h2>🔬 AI Analysis Result</h2>
+
+            <div class="result-row">
+
+                <div class="label">
+                    Crop
+                </div>
+
+                <div class="value">
+                    {{ crop }}
+                </div>
+
+            </div>
+
+
+            <div class="result-row">
+
+                <div class="label">
+                    Possible Disease
+                </div>
+
+                <div class="value result-disease">
+                    {{ disease }}
+                </div>
+
+            </div>
+
+
+            <div class="result-row">
+
+                <div class="label">
+                    AI Confidence
+                </div>
+
+                <div class="confidence">
+                    {{ confidence }}%
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <h2>🌾 Farmer Advisory</h2>
+            <button type="button" id="voiceButton" onclick="speakAdvisory()">
+    🔊 Listen to Advisory
+            </button>
+
+            <ul class="advice-list">
+
+                {% for item in advice %}
+
+                <li>
+                    {{ item }}
+                </li>
+
+                {% endfor %}
+
+            </ul>
+
+        </div>
+
+        {% endif %}
+
+
+        <div class="card">
+
+            <h2>ℹ️ Important</h2>
+
+            <p class="note">
+                This application provides an AI-based prediction
+                from the uploaded leaf image. It should be used
+                as a preliminary advisory and not as a replacement
+                for professional agricultural diagnosis.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="footer">
+
+        CropCare AI |
+        AI-Based Crop Disease Detection
+
+    </div>
+<script>
+const translations = {
+    "🌱 CropCare AI": {
+        en: "🌱 CropCare AI",
+        kn: "🌱 ಕ್ರಾಪ್‌ಕೇರ್ AI",
+        hi: "🌱 क्रॉपकेयर AI"
+    },
+
+    "AI-Based Crop Disease Detection & Farmer Advisory": {
+        en: "AI-Based Crop Disease Detection & Farmer Advisory",
+        kn: "AI ಆಧಾರಿತ ಬೆಳೆ ರೋಗ ಪತ್ತೆ ಮತ್ತು ರೈತ ಸಲಹೆ",
+        hi: "AI आधारित फसल रोग पहचान और किसान सलाह"
+    },
+
+    "🌐 Language:": {
+        en: "🌐 Language:",
+        kn: "🌐 ಭಾಷೆ:",
+        hi: "🌐 भाषा:"
+    },
+
+    "🌿 Check Your Crop Leaf": {
+        en: "🌿 Check Your Crop Leaf",
+        kn: "🌿 ನಿಮ್ಮ ಬೆಳೆ ಎಲೆಯನ್ನು ಪರಿಶೀಲಿಸಿ",
+        hi: "🌿 अपनी फसल की पत्ती जांचें"
+    },
+    "Check new leaves regularly for symptoms.": {
+    en: "Check new leaves regularly for symptoms.",
+    kn: "ಹೊಸ ಎಲೆಗಳಲ್ಲಿ ಕಂಡುಬರುವ ಬದಲಾವಣೆಗಳನ್ನು ನಿಯಮಿತವಾಗಿ ಪರಿಶೀಲಿಸಿ.",
+    hi: "नई पत्तियों में लक्षणों की नियमित रूप से जाँच करें।"
+    },
+    "Upload a clear photo of a tomato or potato leaf. Our AI model will analyze the image and provide a possible disease prediction.": {
+        en: "Upload a clear photo of a tomato or potato leaf. Our AI model will analyze the image and provide a possible disease prediction.",
+        kn: "ಟೊಮೆಟೊ ಅಥವಾ ಆಲೂಗಡ್ಡೆ ಎಲೆಯ ಸ್ಪಷ್ಟ ಫೋಟೋವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ. ನಮ್ಮ AI ಮಾದರಿಯು ಚಿತ್ರವನ್ನು ವಿಶ್ಲೇಷಿಸಿ ಸಂಭವನೀಯ ರೋಗದ ಫಲಿತಾಂಶವನ್ನು ನೀಡುತ್ತದೆ.",
+        hi: "टमाटर या आलू की पत्ती की स्पष्ट फोटो अपलोड करें। हमारा AI मॉडल तस्वीर का विश्लेषण करके संभावित रोग की पहचान करेगा।"
+    },
+
+    "Select or take a clear leaf photo": {
+        en: "Select or take a clear leaf photo",
+        kn: "ಎಲೆಯ ಸ್ಪಷ್ಟ ಫೋಟೋ ಆಯ್ಕೆಮಾಡಿ ಅಥವಾ ತೆಗೆದುಕೊಳ್ಳಿ",
+        hi: "पत्ती की स्पष्ट फोटो चुनें या लें"
+    },
+
+    "Analyze Leaf": {
+        en: "🔍 Analyze Leaf",
+        kn: "🔍 ಎಲೆಯನ್ನು ವಿಶ್ಲೇಷಿಸಿ",
+        hi: "🔍 पत्ती का विश्लेषण करें"
+    },
+
+    "AI Analysis Result": {
+        en: "🔬 AI Analysis Result",
+        kn: "🔬 AI ವಿಶ್ಲೇಷಣೆಯ ಫಲಿತಾಂಶ",
+        hi: "🔬 AI विश्लेषण परिणाम"
+    },
+
+    "Crop": {
+        en: "Crop",
+        kn: "ಬೆಳೆ",
+        hi: "फसल"
+    },
+
+    "Possible Disease": {
+        en: "Possible Disease",
+        kn: "ಸಂಭವನೀಯ ರೋಗ",
+        hi: "संभावित रोग"
+    },
+
+    "AI Confidence": {
+        en: "AI Confidence",
+        kn: "AI ವಿಶ್ವಾಸ ಮಟ್ಟ",
+        hi: "AI विश्वास स्तर"
+    },
+
+    "🌾 Farmer Advisory": {
+        en: "🌾 Farmer Advisory",
+        kn: "🌾 ರೈತ ಸಲಹೆ",
+        hi: "🌾 किसान सलाह"
+    },
+
+    "Important": {
+        en: "Important",
+        kn: "ಮುಖ್ಯ ಮಾಹಿತಿ",
+        hi: "महत्वपूर्ण"
+    },
+
+    "Tomato": {
+        en: "Tomato",
+        kn: "ಟೊಮೆಟೊ",
+        hi: "टमाटर"
+    },
+
+    "Potato": {
+        en: "Potato",
+        kn: "ಆಲೂಗಡ್ಡೆ",
+        hi: "आलू"
+    },
+
+    "Tomato Early Blight": {
+        en: "Tomato Early Blight",
+        kn: "ಟೊಮೆಟೊ ಆರಂಭಿಕ ಅಂಗಮಾರಿ ರೋಗ",
+        hi: "टमाटर अर्ली ब्लाइट"
+    },
+
+    "Tomato Late Blight": {
+        en: "Tomato Late Blight",
+        kn: "ಟೊಮೆಟೊ ತಡ ಅಂಗಮಾರಿ ರೋಗ",
+        hi: "टमाटर लेट ब्लाइट"
+    },
+
+    "Tomato Bacterial Spot": {
+        en: "Tomato Bacterial Spot",
+        kn: "ಟೊಮೆಟೊ ಬ್ಯಾಕ್ಟೀರಿಯಾ ಕಲೆ ರೋಗ",
+        hi: "टमाटर बैक्टीरियल स्पॉट"
+    },
+
+    "Tomato Leaf Mold": {
+        en: "Tomato Leaf Mold",
+        kn: "ಟೊಮೆಟೊ ಎಲೆ ಅಚ್ಚು ರೋಗ",
+        hi: "टमाटर लीफ मोल्ड"
+    },
+
+    "Healthy Tomato Leaf": {
+        en: "Healthy Tomato Leaf",
+        kn: "ಆರೋಗ್ಯಕರ ಟೊಮೆಟೊ ಎಲೆ",
+        hi: "स्वस्थ टमाटर की पत्ती"
+    },
+
+    "Potato Early Blight": {
+        en: "Potato Early Blight",
+        kn: "ಆಲೂಗಡ್ಡೆ ಆರಂಭಿಕ ಅಂಗಮಾರಿ ರೋಗ",
+        hi: "आलू अर्ली ब्लाइट"
+    },
+
+    "Potato Late Blight": {
+        en: "Potato Late Blight",
+        kn: "ಆಲೂಗಡ್ಡೆ ತಡ ಅಂಗಮಾರಿ ರೋಗ",
+        hi: "आलू लेट ब्लाइट"
+    },
+
+    "Healthy Potato Leaf": {
+        en: "Healthy Potato Leaf",
+        kn: "ಆರೋಗ್ಯಕರ ಆಲೂಗಡ್ಡೆ ಎಲೆ",
+        hi: "स्वस्थ आलू की पत्ती"
+    },
+"Remove severely affected leaves and plant debris.": {
+    en: "Remove severely affected leaves and plant debris.",
+    kn: "ತೀವ್ರವಾಗಿ ಬಾಧಿತ ಎಲೆಗಳು ಮತ್ತು ಸಸ್ಯದ ಅವಶೇಷಗಳನ್ನು ತೆಗೆದುಹಾಕಿ.",
+    hi: "अधिक प्रभावित पत्तियों और पौधों के अवशेषों को हटा दें।"
+},
+
+"Avoid unnecessary wetting of potato leaves.": {
+    en: "Avoid unnecessary wetting of potato leaves.",
+    kn: "ಆಲೂಗಡ್ಡೆ ಎಲೆಗಳನ್ನು ಅನಗತ್ಯವಾಗಿ ಒದ್ದೆ ಮಾಡುವುದನ್ನು ತಪ್ಪಿಸಿ.",
+    hi: "आलू की पत्तियों को अनावश्यक रूप से गीला करने से बचें।"
+},
+
+"Maintain proper spacing between plants for good air circulation.": {
+    en: "Maintain proper spacing between plants for good air circulation.",
+    kn: "ಉತ್ತಮ ಗಾಳಿಯ ಸಂಚಾರಕ್ಕಾಗಿ ಸಸ್ಯಗಳ ನಡುವೆ ಸರಿಯಾದ ಅಂತರವನ್ನು ಕಾಯ್ದುಕೊಳ್ಳಿ.",
+    hi: "अच्छे वायु संचार के लिए पौधों के बीच उचित दूरी बनाए रखें।"
+},
+
+"Monitor nearby plants for similar symptoms.": {
+    en: "Monitor nearby plants for similar symptoms.",
+    kn: "ಸುತ್ತಮುತ್ತಲಿನ ಸಸ್ಯಗಳಲ್ಲಿ ಇದೇ ರೀತಿಯ ಲಕ್ಷಣಗಳನ್ನು ಗಮನಿಸಿ.",
+    hi: "आस-पास के पौधों में ऐसे ही लक्षणों की निगरानी करें।"
+},
+
+"Remove severely infected plant material where practical.": {
+    en: "Remove severely infected plant material where practical.",
+    kn: "ಸಾಧ್ಯವಾದಲ್ಲಿ ತೀವ್ರವಾಗಿ ಸೋಂಕಿತ ಸಸ್ಯದ ಭಾಗಗಳನ್ನು ತೆಗೆದುಹಾಕಿ.",
+    hi: "जहां संभव हो, गंभीर रूप से संक्रमित पौधों के हिस्सों को हटा दें।"
+},
+
+"Avoid prolonged leaf wetness and improve field ventilation.": {
+    en: "Avoid prolonged leaf wetness and improve field ventilation.",
+    kn: "ಎಲೆಗಳು ದೀರ್ಘಕಾಲ ಒದ್ದೆಯಾಗಿರುವುದನ್ನು ತಪ್ಪಿಸಿ ಮತ್ತು ಹೊಲದಲ್ಲಿ ಗಾಳಿಯ ಸಂಚಾರವನ್ನು ಸುಧಾರಿಸಿ.",
+    hi: "पत्तियों को लंबे समय तक गीला रहने से बचाएं और खेत में वायु संचार बेहतर करें।"
+},
+
+"Monitor the crop regularly for rapid disease spread.": {
+    en: "Monitor the crop regularly for rapid disease spread.",
+    kn: "ರೋಗವು ವೇಗವಾಗಿ ಹರಡದಂತೆ ಬೆಳೆಯನ್ನು ನಿಯಮಿತವಾಗಿ ಗಮನಿಸಿ.",
+    hi: "रोग के तेजी से फैलाव के लिए फसल की नियमित निगरानी करें।"
+},
+
+"Consult a local agricultural expert for suitable disease-management measures.": {
+    en: "Consult a local agricultural expert for suitable disease-management measures.",
+    kn: "ಸೂಕ್ತ ರೋಗ ನಿರ್ವಹಣಾ ಕ್ರಮಗಳಿಗಾಗಿ ಸ್ಥಳೀಯ ಕೃಷಿ ತಜ್ಞರನ್ನು ಸಂಪರ್ಕಿಸಿ.",
+    hi: "उचित रोग प्रबंधन उपायों के लिए स्थानीय कृषि विशेषज्ञ से सलाह लें।"
+},
+
+"The leaf appears healthy according to the AI prediction.": {
+    en: "The leaf appears healthy according to the AI prediction.",
+    kn: "AI ಮುನ್ಸೂಚನೆಯ ಪ್ರಕಾರ ಎಲೆ ಆರೋಗ್ಯಕರವಾಗಿ ಕಾಣುತ್ತದೆ.",
+    hi: "AI के अनुसार यह पत्ती स्वस्थ दिखाई देती है।"
+},
+
+"Continue regular crop monitoring.": {
+    en: "Continue regular crop monitoring.",
+    kn: "ಬೆಳೆಯನ್ನು ನಿಯಮಿತವಾಗಿ ಗಮನಿಸುವುದನ್ನು ಮುಂದುವರಿಸಿ.",
+    hi: "फसल की नियमित निगरानी जारी रखें।"
+},
+
+"Maintain proper irrigation, nutrition and field hygiene.": {
+    en: "Maintain proper irrigation, nutrition and field hygiene.",
+    kn: "ಸರಿಯಾದ ನೀರಾವರಿ, ಪೋಷಣೆ ಮತ್ತು ಹೊಲದ ಸ್ವಚ್ಛತೆಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳಿ.",
+    hi: "उचित सिंचाई, पोषण और खेत की स्वच्छता बनाए रखें।"
+},
+
+"Check new leaves regularly for changes.": {
+    en: "Check new leaves regularly for changes.",
+    kn: "ಹೊಸ ಎಲೆಗಳಲ್ಲಿ ಬದಲಾವಣೆಗಳಿವೆಯೇ ಎಂದು ನಿಯಮಿತವಾಗಿ ಪರಿಶೀಲಿಸಿ.",
+    hi: "नई पत्तियों में बदलाव के लिए नियमित रूप से जांच करें।"
+},
+
+"Avoid unnecessary overhead watering.": {
+    en: "Avoid unnecessary overhead watering.",
+    kn: "ಅನಗತ್ಯವಾಗಿ ಮೇಲಿನಿಂದ ನೀರು ಹಾಕುವುದನ್ನು ತಪ್ಪಿಸಿ.",
+    hi: "अनावश्यक रूप से ऊपर से पानी देने से बचें।"
+},
+
+"Avoid unnecessary wetting of foliage.": {
+    en: "Avoid unnecessary wetting of foliage.",
+    kn: "ಎಲೆಗಳನ್ನು ಅನಗತ್ಯವಾಗಿ ಒದ್ದೆ ಮಾಡುವುದನ್ನು ತಪ್ಪಿಸಿ.",
+    hi: "पत्तियों को अनावश्यक रूप से गीला करने से बचें।"
+},
+
+"Keep foliage as dry as possible.": {
+    en: "Keep foliage as dry as possible.",
+    kn: "ಎಲೆಗಳನ್ನು ಸಾಧ್ಯವಾದಷ್ಟು ಒಣವಾಗಿಡಿ.",
+    hi: "पत्तियों को यथासंभव सूखा रखें।"
+},
+
+"Maintain adequate spacing and air circulation.": {
+    en: "Maintain adequate spacing and air circulation.",
+    kn: "ಸಾಕಷ್ಟು ಅಂತರ ಮತ್ತು ಗಾಳಿಯ ಸಂಚಾರವನ್ನು ಕಾಯ್ದುಕೊಳ್ಳಿ.",
+    hi: "पर्याप्त दूरी और वायु संचार बनाए रखें।"
+},
+
+"Monitor lower leaves and nearby plants regularly.": {
+    en: "Monitor lower leaves and nearby plants regularly.",
+    kn: "ಕೆಳಗಿನ ಎಲೆಗಳು ಮತ್ತು ಸುತ್ತಮುತ್ತಲಿನ ಸಸ್ಯಗಳನ್ನು ನಿಯಮಿತವಾಗಿ ಗಮನಿಸಿ.",
+    hi: "नीचे की पत्तियों और आस-पास के पौधों की नियमित निगरानी करें।"
+},
+
+"Improve ventilation around tomato plants.": {
+    en: "Improve ventilation around tomato plants.",
+    kn: "ಟೊಮೆಟೊ ಸಸ್ಯಗಳ ಸುತ್ತ ಗಾಳಿಯ ಸಂಚಾರವನ್ನು ಸುಧಾರಿಸಿ.",
+    hi: "टमाटर के पौधों के आसपास वायु संचार बेहतर करें।"
+},
+
+"Remove severely affected leaves where practical.": {
+    en: "Remove severely affected leaves where practical.",
+    kn: "ಸಾಧ್ಯವಾದಲ್ಲಿ ತೀವ್ರವಾಗಿ ಬಾಧಿತ ಎಲೆಗಳನ್ನು ತೆಗೆದುಹಾಕಿ.",
+    hi: "जहां संभव हो, अधिक प्रभावित पत्तियों को हटा दें।"
+},
+
+"Maintain proper irrigation and plant nutrition.": {
+    en: "Maintain proper irrigation and plant nutrition.",
+    kn: "ಸರಿಯಾದ ನೀರಾವರಿ ಮತ್ತು ಸಸ್ಯ ಪೋಷಣೆಯನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳಿ.",
+    hi: "उचित सिंचाई और पौधों का पोषण बनाए रखें।"
+}
+};
+
+function changeLanguage(language) {
+
+    const textNodes = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_TEXT
+    );
+
+    const nodes = [];
+
+    while (textNodes.nextNode()) {
+        nodes.push(textNodes.currentNode);
+    }
+
+    nodes.forEach(node => {
+
+        const originalText = node.textContent.trim();
+
+        if (!originalText) return;
+
+        for (const key in translations) {
+
+            const item = translations[key];
+
+            if (
+                originalText === item.en ||
+                originalText === item.kn ||
+                originalText === item.hi
+            ) {
+                node.textContent =
+                    node.textContent.replace(
+                        originalText,
+                        item[language]
+                    );
+                break;
+            }
+        }
+    });
+}
+
+document.getElementById("languageSelect").addEventListener(
+    "change",
+    function () {
+        changeLanguage(this.value);
+    }
+);
+</script>
+
+<script>
+function speakAdvisory() {
+
+    const language = document.getElementById("languageSelect").value;
+
+    const diseaseElement = document.querySelector(".result-disease");
+    const adviceList = document.querySelector(".advice-list");
+
+    if (!diseaseElement || !adviceList) {
+        alert("Please analyze a leaf first.");
+        return;
+    }
+
+    const disease = diseaseElement.innerText.trim();
+
+    const adviceItems = Array.from(
+        adviceList.querySelectorAll("li")
+    ).map(item => item.innerText.trim());
+
+    let speechText = "";
+
+    if (language === "kn") {
+
+        speechText =
+            "ಸಂಭವನೀಯ ರೋಗ: " + disease + ". " +
+            "ರೈತ ಸಲಹೆಗಳು: " +
+            adviceItems.join(". ");
+
+    } else if (language === "hi") {
+
+        speechText =
+            "संभावित रोग: " + disease + ". " +
+            "किसान सलाह: " +
+            adviceItems.join(". ");
+
+    } else {
+
+        speechText =
+            "Possible disease: " + disease + ". " +
+            "Farmer advisory: " +
+            adviceItems.join(". ");
+    }
+
+    const speech = new SpeechSynthesisUtterance(speechText);
+    if (language === "kn") {
+        speech.lang = "kn-IN";
+        speech.rate = 0.8;
+        speech.volume = 1;
+    }
+
+    if (language === "kn") {
+        speech.lang = "kn-IN";
+    }
+    else if (language === "hi") {
+        speech.lang = "hi-IN";
+    }
+    else {
+        speech.lang = "en-IN";
+    }
+
+    speech.rate = 0.85;
+    speech.pitch = 1;
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(speech);
+}
+</script>
+
+
+</body>
+</html>

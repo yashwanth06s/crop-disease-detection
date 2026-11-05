@@ -153,7 +153,7 @@ def predict():
             .replace("_", " ")
         )
 
-       advice = ADVICE.get(
+        advice = ADVICE.get(
             disease_code,
             [
                 "The AI prediction is preliminary and should be verified.",

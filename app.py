@@ -153,10 +153,16 @@ def predict():
             .replace("_", " ")
         )
 
-        advice = ADVICE.get(
-            disease_code,
-            []
-        )
+       advice = ADVICE.get(
+    disease_code,
+    [
+        "The AI prediction is preliminary and should be verified.",
+        "Monitor the crop regularly for changes in leaf symptoms.",
+        "Maintain proper irrigation, nutrition and field hygiene.",
+        "Avoid unnecessary wetting of leaves.",
+        "Consult a local agricultural expert before applying any treatment."
+    ]
+)
 
         return render_template(
             "index.html",

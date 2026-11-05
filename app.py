@@ -7,8 +7,8 @@ from ai_edge_litert.interpreter import Interpreter
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 
-MODEL_PATH = os.path.join(BASE, "crop_disease_model.tflite")
-CLASS_PATH = os.path.join(BASE, "class_names.json")
+MODEL_PATH = os.path.join(BASE, "crop_disease_model_27.tflite")
+CLASS_PATH = os.path.join(BASE, "class_names_27.json")
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024

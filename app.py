@@ -1,5 +1,7 @@
 import os
 import json
+import base64
+import io
 import numpy as np
 from PIL import Image
 from flask import Flask, render_template, request
@@ -107,9 +109,14 @@ def predict():
 
     try:
 
-        image = Image.open(file.stream).convert("RGB")
-        image = image.resize((224, 224))
+       image_bytes = file.read()
+image_mime = file.mimetype or "image/jpeg"
 
+image = Image.open(
+    io.BytesIO(image_bytes)
+).convert("RGB")
+
+image = image.resize((224, 224))
         # IMPORTANT:
         # The MobileNetV2 preprocessing layer is already inside
         # the converted model, so the image remains in 0-255 format.
@@ -170,7 +177,11 @@ def predict():
             crop=crop,
             disease=disease,
             confidence=confidence,
-            advice=advice
+            advice=advice,
+            image_data=(
+                f"data:{image_mime};base64,"
+                + base64.b64encode(image_bytes).decode("utf-8")
+            )
         )
     except Exception as e:
 

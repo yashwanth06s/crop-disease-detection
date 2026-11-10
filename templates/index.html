@@ -73,6 +73,37 @@
             margin: 15px 0;
             padding: 10px;
         }
+        .image-preview-box {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.image-preview-box img {
+    display: none;
+    width: 100%;
+    max-width: 350px;
+    max-height: 300px;
+    object-fit: contain;
+    border-radius: 14px;
+    border: 2px solid #4b9b60;
+    margin: 12px auto;
+}
+
+.preview-label {
+    font-size: 14px;
+    color: #176b35;
+    font-weight: bold;
+}
+
+.change-image {
+    background: #e7f4e9;
+    color: #176b35;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
 
         .button {
             width: 100%;
@@ -197,12 +228,11 @@
 
             <h2>🌿 Check Your Crop Leaf</h2>
 
-            <p>
-                Upload a clear photo of a tomato or potato leaf.
-                Our AI model will analyze the image and provide
-                a possible disease prediction.
-            </p>
-
+           <p>
+    Upload a clear photo of a Tomato, Potato, Chilli,
+    Mango or Ragi leaf. Our AI model will analyze the
+    image and provide a possible disease prediction.
+</p>
             <form action="/predict"
                   method="POST"
                   enctype="multipart/form-data">
@@ -217,12 +247,19 @@
                         Select or take a clear leaf photo
                     </p>
 
-                    <input
-                        type="file"
-                        name="leaf_image"
-                        accept="image/*"
-                        required
-                    >
+                   <input
+    type="file"
+    id="leafInput"
+    name="leaf_image"
+    accept="image/*"
+    required
+>
+
+<div class="image-preview-box">
+    <p class="preview-label" id="previewLabel"></p>
+
+    <img id="imagePreview" alt="Selected leaf image">
+</div>
 
                 </div>
 
@@ -242,6 +279,24 @@
         <div class="card" id="resultCard">
 
             <h2>🔬 AI Analysis Result</h2>
+            {% if image_data %}
+<div class="image-preview-box">
+    <p class="preview-label">Uploaded Leaf Image</p>
+
+    <img
+        src="{{ image_data }}"
+        alt="Uploaded crop leaf"
+        style="display:block;"
+    >
+
+    <button
+        type="button"
+        class="change-image"
+        onclick="document.getElementById('leafInput').click()">
+        📷 Change Image
+    </button>
+</div>
+{% endif %}
 
             <div class="result-row">
 
@@ -331,6 +386,37 @@
 
     </div>
 <script>
+document.getElementById("leafInput").addEventListener(
+    "change",
+    function(event) {
+
+        const file = event.target.files[0];
+
+        const preview = document.getElementById("imagePreview");
+        const label = document.getElementById("previewLabel");
+
+        if (file) {
+
+            if (!file.type.startsWith("image/")) {
+                alert("Please select a valid image.");
+                this.value = "";
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = "block";
+                label.textContent = "Selected Leaf Image";
+            };
+
+            reader.readAsDataURL(file);
+        }
+    }
+);
+</script>
+    <script>
 const translations = {
     "🌱 CropCare AI": {
         en: "🌱 CropCare AI",
@@ -360,11 +446,11 @@ const translations = {
     kn: "ಹೊಸ ಎಲೆಗಳಲ್ಲಿ ಕಂಡುಬರುವ ಬದಲಾವಣೆಗಳನ್ನು ನಿಯಮಿತವಾಗಿ ಪರಿಶೀಲಿಸಿ.",
     hi: "नई पत्तियों में लक्षणों की नियमित रूप से जाँच करें।"
     },
-    "Upload a clear photo of a tomato or potato leaf. Our AI model will analyze the image and provide a possible disease prediction.": {
-        en: "Upload a clear photo of a tomato or potato leaf. Our AI model will analyze the image and provide a possible disease prediction.",
-        kn: "ಟೊಮೆಟೊ ಅಥವಾ ಆಲೂಗಡ್ಡೆ ಎಲೆಯ ಸ್ಪಷ್ಟ ಫೋಟೋವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ. ನಮ್ಮ AI ಮಾದರಿಯು ಚಿತ್ರವನ್ನು ವಿಶ್ಲೇಷಿಸಿ ಸಂಭವನೀಯ ರೋಗದ ಫಲಿತಾಂಶವನ್ನು ನೀಡುತ್ತದೆ.",
-        hi: "टमाटर या आलू की पत्ती की स्पष्ट फोटो अपलोड करें। हमारा AI मॉडल तस्वीर का विश्लेषण करके संभावित रोग की पहचान करेगा।"
-    },
+    "Upload a clear photo of a Tomato, Potato, Chilli, Mango or Ragi leaf. Our AI model will analyze the image and provide a possible disease prediction.": {
+    en: "Upload a clear photo of a Tomato, Potato, Chilli, Mango or Ragi leaf. Our AI model will analyze the image and provide a possible disease prediction.",
+    kn: "ಟೊಮೆಟೊ, ಆಲೂಗಡ್ಡೆ, ಮೆಣಸಿನಕಾಯಿ, ಮಾವು ಅಥವಾ ರಾಗಿ ಎಲೆಯ ಸ್ಪಷ್ಟ ಫೋಟೋವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ. ನಮ್ಮ AI ಮಾದರಿಯು ಚಿತ್ರವನ್ನು ವಿಶ್ಲೇಷಿಸಿ ಸಂಭವನೀಯ ರೋಗವನ್ನು ಗುರುತಿಸುತ್ತದೆ.",
+    hi: "टमाटर, आलू, मिर्च, आम या रागी की पत्ती की स्पष्ट फोटो अपलोड करें। हमारा AI मॉडल तस्वीर का विश्लेषण करके संभावित रोग की पहचान करेगा।"
+},
 
     "Select or take a clear leaf photo": {
         en: "Select or take a clear leaf photo",

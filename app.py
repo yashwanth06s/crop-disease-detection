@@ -109,15 +109,16 @@ def predict():
 
     try:
 
-       image_bytes = file.read()
-image_mime = file.mimetype or "image/jpeg"
+        image_bytes = file.read()
 
-image = Image.open(
-    io.BytesIO(image_bytes)
-).convert("RGB")
+        image_mime = file.mimetype or "image/jpeg"
 
-image = image.resize((224, 224))
-        # IMPORTANT:
+        image = Image.open(
+            io.BytesIO(image_bytes)
+        ).convert("RGB")
+
+        image = image.resize((224, 224))
+
         # The MobileNetV2 preprocessing layer is already inside
         # the converted model, so the image remains in 0-255 format.
 
@@ -178,10 +179,7 @@ image = image.resize((224, 224))
             disease=disease,
             confidence=confidence,
             advice=advice,
-            image_data=(
-                f"data:{image_mime};base64,"
-                + base64.b64encode(image_bytes).decode("utf-8")
-            )
+            image_data=f"data:{image_mime};base64,{base64.b64encode(image_bytes).decode('utf-8')}"
         )
     except Exception as e:
 

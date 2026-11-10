@@ -155,12 +155,8 @@ def predict():
 
         crop = disease_code.split("_")[0]
 
-       disease = (
-    disease_code
-    .replace("_", " ")
-    .replace("_", " ")
-    .title()
-)
+        disease = disease_code.replace("_", " ").replace("_", " ").title()
+
         advice = ADVICE.get(
             disease_code,
             [
